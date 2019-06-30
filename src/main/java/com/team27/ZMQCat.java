@@ -2,8 +2,8 @@ package com.team27;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
@@ -39,14 +39,18 @@ public class ZMQCat {
       case "STREAM":
         return SocketType.STREAM;
       default:
-        System.err.println("Usage: java -jar ZMQCat.jar <Socket Type> [--bind | --connect] <Pub Socket Address>");
-        throw new IOException(String.format("Unknown Socket Type %s", socket_type));
+        System.err.println(
+            "Usage: java -jar ZMQCat.jar <Socket Type> [--bind | --connect] <Pub Socket Address>");
+        System.exit(1);
     }
+
+    return SocketType.SUB;
   }
 
   public static void main(String[] args) {
     if (args.length == 0) {
-      System.err.println("Usage: java -jar ZMQCat.jar <Socket Type> [--bind | --connect] <Pub Socket Address>");
+      System.err.println(
+          "Usage: java -jar ZMQCat.jar <Socket Type> [--bind | --connect] <Pub Socket Address>");
       System.exit(1);
     }
 
@@ -67,18 +71,24 @@ public class ZMQCat {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
 
       SocketType socket_type = parse_socket_type(args[0]);
-      socket = context.createSocket(socket_type);      
+      socket = context.createSocket(socket_type);
 
       boolean success;
       if (bind) {
         if (!socket.bind(address)) {
-          System.err.println(String.format("Failed to bind to %s. Reason: %s", address, ZMQ.Error.findByCode(socket.errno()).getMessage()));
+          System.err.println(
+              String.format(
+                  "Failed to bind to %s. Reason: %s",
+                  address, ZMQ.Error.findByCode(socket.errno()).getMessage()));
           return;
         }
         System.out.println(String.format("Bound to %s", address));
       } else {
         if (!socket.connect(address)) {
-          System.err.println(String.format("Failed to connect to %s. Reason: %s", address, ZMQ.Error.findByCode(socket.errno()).getMessage()));
+          System.err.println(
+              String.format(
+                  "Failed to connect to %s. Reason: %s",
+                  address, ZMQ.Error.findByCode(socket.errno()).getMessage()));
           return;
         }
         System.err.println(String.format("Connected to %s", address));
@@ -100,15 +110,21 @@ public class ZMQCat {
             if (reader.ready()) {
               outgoing = reader.readLine();
               if (outgoing != null && !socket.send(outgoing, ZMQ.DONTWAIT)) {
-                System.err.println(String.format("SEND on %s @ %s failed: %s", args[0], address, ZMQ.Error.findByCode(socket.errno()).getMessage()));
+                System.err.println(
+                    String.format(
+                        "SEND on %s @ %s failed: %s",
+                        args[0], address, ZMQ.Error.findByCode(socket.errno()).getMessage()));
               }
             }
           } catch (UnsupportedOperationException e) {
             System.err.println(String.format("%s does not support sending.", args[0]));
             can_send = false;
           } catch (ZMQException e) {
-            System.err.println(String.format("SEND on %s @ %s failed: %s", args[0], address, ZMQ.Error.findByCode(socket.errno()).getMessage()));
-          } 
+            System.err.println(
+                String.format(
+                    "SEND on %s @ %s failed: %s",
+                    args[0], address, ZMQ.Error.findByCode(socket.errno()).getMessage()));
+          }
         }
 
         try {
@@ -124,10 +140,13 @@ public class ZMQCat {
           }
         } catch (ZMQException e) {
           if (can_recv) {
-            System.err.println(String.format("RECV on %s @ %s failed: %s", args[0], address, ZMQ.Error.findByCode(socket.errno()).getMessage()));
+            System.err.println(
+                String.format(
+                    "RECV on %s @ %s failed: %s",
+                    args[0], address, ZMQ.Error.findByCode(socket.errno()).getMessage()));
             can_recv = false;
           }
-        } 
+        }
 
         Thread.sleep(1);
       }
